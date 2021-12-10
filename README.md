@@ -36,7 +36,8 @@ prerequisites
 ## start Terraform 
 
 ```
-terraform init
+ansible-playbook db-play-book.yml -i inventroy.txt --private-key mykey
 
-terraform apply
+ansible-playbook docker-play-book -i inventroy.txt --private-key mykey
+
 ```
