@@ -1,0 +1,2 @@
+targetx ansible_host=18.170.102.11   ansible_port=1337 ansible_user=ubuntu 
+

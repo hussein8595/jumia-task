@@ -1,0 +1,114 @@
+- hosts: targetx
+  become: true
+  
+
+  tasks:
+    - include_vars: vars.yml
+    
+          
+    - name: Install aptitude using apt
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python3-pip', 'virtualenv', 'python3-setuptools', 'maven']
+
+     
+    - name: install npm
+      apt: name=npm state=latest update_cache=yes 
+      
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt: update_cache=yes name=docker-ce state=latest
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
+    - copy:
+        src: id_rsa
+        dest: ~/.ssh/id_rsa
+        
+    - name: add right permissions
+      command: "chmod 400 ~/.ssh/id_rsa"
+
+    - name: start ssh agent
+      shell: eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa
+      args:
+        executable: /bin/bash    
+  
+    - name: hotkey
+      command: "ssh -o StrictHostKeyChecking=no git@github.com"
+      ignore_errors: yes
+
+    - name: Git checkout
+      ignore_errors: yes
+      ansible.builtin.git:
+        repo: 'git@github.com:Jumia/DevOps-Challenge.git'
+        dest: /srv/checkout
+
+
+    - name: npm install   
+      command: npm install   
+      args:
+       chdir: /srv/checkout/jumia_phone_validator/validator-frontend/
+
+
+    - name:  npm run build
+      command: npm run build
+      args:
+       chdir: /srv/checkout/jumia_phone_validator/validator-frontend/
+
+
+
+    - name: Build validator-frontend image
+      docker_image:
+        path: /srv/checkout/jumia_phone_validator/validator-frontend/
+        name: validator-frontend
+        tag: latest
+        
+    - name: start frontend container
+      docker_container:
+       name: validator-frontend
+       image: validator-frontend:latest
+       state: started
+       ports:
+         - "80:8081"
+    
+    - name: overwrite DB values
+      command: "{{item}}"
+      loop: 
+        - sed -i 's/spring.datasource.username=root/{{ ApplicationPropertiesUser }}/' {{ ApplicationProperties }}
+        - sed -i 's/spring.datasource.password=root/{{ ApplicationPropertiesPassword }}/' {{ ApplicationProperties }}
+        - sed -i 's/localhost:5432/{{DBendpoint}}:5432/' {{ ApplicationProperties }}
+
+         
+    - name:  mvn clean install   
+      command: mvn clean install  
+      args:
+       chdir: /srv/checkout/jumia_phone_validator/validator-backend/
+       
+       
+     
+    - name: validator-backend-image
+      docker_image:
+        path: /srv/checkout/jumia_phone_validator/validator-backend/
+        name: validator-backend
+        tag: latest
+        
+    - name: start backend container
+      docker_container:
+       name: validator-backend
+       image: validator-backend:latest
+       state: started
+       ports:
+         - "8080:8080"
