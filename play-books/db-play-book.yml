@@ -1,5 +1,5 @@
 - name: Ansible apt module examples
-  hosts: targetx
+  hosts: target
   become: yes
   tasks:
     - include_vars: vars.yml
