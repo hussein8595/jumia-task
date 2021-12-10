@@ -7,3 +7,4 @@ DbPassword: <<Password>>
 ApplicationProperties: /srv/checkout/jumia_phone_validator/validator-backend/src/main/resources/application.properties
 ApplicationPropertiesUser: spring.datasource.username=jumia
 ApplicationPropertiesPassword: spring.datasource.Password=jumia##
+ssh-key: id_rsa
