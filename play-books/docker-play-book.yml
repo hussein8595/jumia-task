@@ -39,22 +39,24 @@
         dest: ~/.ssh/id_rsa
         
     - name: add right permissions
-      command: "chmod 400 ~/.ssh/id_rsa"
+      ansible.builtin.file:
+       path: ~/.ssh/id_rsa
+       owner: root
+       group: root
+       mode: '400'
 
     - name: start ssh agent
       shell: eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa
       args:
         executable: /bin/bash    
-  
-    - name: hotkey
-      command: "ssh -o StrictHostKeyChecking=no git@github.com"
-      ignore_errors: yes
+ 
 
     - name: Git checkout
       ignore_errors: yes
       ansible.builtin.git:
         repo: 'git@github.com:Jumia/DevOps-Challenge.git'
         dest: /srv/checkout
+        accept_hostkey: yes
 
 
     - name: npm install   
@@ -84,13 +86,15 @@
        ports:
          - "80:8081"
     
+
+
+
     - name: overwrite DB values
       command: "{{item}}"
       loop: 
         - sed -i 's/spring.datasource.username=root/{{ ApplicationPropertiesUser }}/' {{ ApplicationProperties }}
         - sed -i 's/spring.datasource.password=root/{{ ApplicationPropertiesPassword }}/' {{ ApplicationProperties }}
         - sed -i 's/localhost:5432/{{DBendpoint}}:5432/' {{ ApplicationProperties }}
-
          
     - name:  mvn clean install   
       command: mvn clean install  
@@ -99,10 +103,13 @@
        
        
      
+
+     
     - name: validator-backend-image
       docker_image:
         path: /srv/checkout/jumia_phone_validator/validator-backend/
         name: validator-backend
+        force: yes
         tag: latest
         
     - name: start backend container
@@ -112,3 +119,12 @@
        state: started
        ports:
          - "8080:8080"
+         
+   
+    - name: overwrite DB values
+      command: "{{item}}"
+      loop: 
+        - sed -i 's/{{ ApplicationPropertiesUser }}/spring.datasource.username=root/' {{ ApplicationProperties }}
+        - sed -i 's/{{ ApplicationPropertiesPassword }}/spring.datasource.password=root/' {{ ApplicationProperties }}
+        - sed -i 's/{{DBendpoint}}:5432/localhost:5432/' {{ ApplicationProperties }}
+         
