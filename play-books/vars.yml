@@ -1,7 +1,7 @@
 DBendpoint: <<END-POINT>>
 MasterDbUser: master 
 MasterDbPassword: <<Password>>
-DbName: jumia_phone_validator
+DbName: validator_backend
 DbUser: jumia 
 DbPassword: <<Password>>
 ApplicationProperties: /srv/checkout/jumia_phone_validator/validator-backend/src/main/resources/application.properties
