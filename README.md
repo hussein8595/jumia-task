@@ -14,3 +14,9 @@ terraform init
 
 terraform apply
 ```
+
+## Terraform output 
+
+- ELB endpoint
+- EC2 endpoint
+- RDS endpoint
