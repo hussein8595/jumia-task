@@ -38,6 +38,6 @@ Terraform is used to configure our DataBase , setup docker , build & deploy our 
 ```
 ansible-playbook db-play-book.yml -i inventroy.txt --private-key mykey
 
-ansible-playbook docker-play-book -i inventroy.txt --private-key mykey
+ansible-playbook docker-play-book.yml -i inventroy.txt --private-key mykey
 
 ```
