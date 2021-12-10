@@ -1,4 +1,4 @@
-- hosts: targetx
+- hosts: target
   become: true
   
 
