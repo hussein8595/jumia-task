@@ -1,0 +1,98 @@
+- name: Ansible apt module examples
+  hosts: targetx
+  become: yes
+  tasks:
+    - include_vars: vars.yml
+   
+        
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'libpq-dev' , 'python3-pip']
+      
+      
+    - name: Install  python package
+      pip:
+       name: psycopg2
+
+
+        
+    - name: ping postgres
+      postgresql_ping:
+         db: '{{ DbName }}'
+         login_host: '{{ DBendpoint }}'
+         login_password: '{{ MasterDbPassword }}'
+         login_user: '{{ MasterDbUser }}' 
+    - name: add db
+      postgresql_db:
+       login_host: '{{ DBendpoint }}'
+       login_password: '{{ MasterDbPassword }}'
+       login_user: '{{ MasterDbUser }}' 
+       name: validator_backend
+       
+       
+    - name: add user
+      postgresql_user:
+       db: '{{ DbName }}'
+       login_host: '{{ DBendpoint }}'
+       login_password: '{{ MasterDbPassword }}'
+       login_user: '{{ MasterDbUser }}'  
+       name: '{{ DbUser }}' 
+       priv: "CONNECT/CREATE"
+       password: '{{ DbPassword }}'
+     
+
+    - name: set privliages
+      postgresql_privs:
+       db: '{{ DbName }}'
+       login_host: '{{ DBendpoint }}'
+       login_password: '{{ MasterDbPassword }}'
+       login_user: '{{ MasterDbUser }}'   
+       role: '{{ DbUser }}' 
+       objs: ALL_IN_SCHEMA
+       priv: SELECT,INSERT,UPDATE,DELETE
+
+    - copy:
+        src: id_rsa
+        dest: ~/.ssh/id_rsa
+        
+    - name: add right permissions
+      ansible.builtin.file:
+       path: ~/.ssh/id_rsa
+       owner: root
+       group: root
+       mode: '400'
+
+    - name: start ssh agent
+      shell: eval `ssh-agent -s` && ssh-add ~/.ssh/id_rsa
+      args:
+        executable: /bin/bash    
+  
+
+    - name: Git checkout
+      ignore_errors: yes
+      ansible.builtin.git:
+        repo: 'git@github.com:Jumia/DevOps-Challenge.git'
+        accept_hostkey: yes
+        dest: /srv/checkout
+
+
+    - name: overwrite sql dump 
+      command: sed -i 's/COMMIT;/COMMIT/'  /srv/checkout/jumia_phone_validator/database/sample.sql
+        
+     
+    - name: Run queries from SQL script
+      ignore_errors: yes
+      postgresql_query:
+       db: '{{ DbName }}'
+       login_host: '{{ DBendpoint }}'
+       login_password: '{{ DbPassword }}'
+       login_user: '{{ DbUser }}' 
+       path_to_script: /srv/checkout/jumia_phone_validator/database/sample.sql
+       
+        
+
+   
+    
+    - name: revert sql dump 
+      command: sed -i 's/COMMIT/COMMIT;/'  /srv/checkout/jumia_phone_validator/database/sample.sql
+      
