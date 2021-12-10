@@ -22,12 +22,6 @@
          login_host: '{{ DBendpoint }}'
          login_password: '{{ MasterDbPassword }}'
          login_user: '{{ MasterDbUser }}' 
-    - name: add db
-      postgresql_db:
-       login_host: '{{ DBendpoint }}'
-       login_password: '{{ MasterDbPassword }}'
-       login_user: '{{ MasterDbUser }}' 
-       name: validator_backend
        
        
     - name: add user
