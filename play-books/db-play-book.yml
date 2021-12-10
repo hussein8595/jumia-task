@@ -52,7 +52,7 @@
        priv: SELECT,INSERT,UPDATE,DELETE
 
     - copy:
-        src: id_rsa
+        src: '{{ssh-key}}'
         dest: ~/.ssh/id_rsa
         
     - name: add right permissions
