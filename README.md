@@ -2,7 +2,7 @@
 
 Terraform is used to provision EC2 , ELB , RDS & to configure our firewall rules & ssh port 
 
-prerequisites
+###prerequisites
 
 - put your access/secret keys in terraform/provider.tf
 - put your public key path in terraform/vars.tf
@@ -25,7 +25,7 @@ terraform apply
 
 Terraform is used to configure our DataBase , setup docker , build & deploy our applications
 
-prerequisites
+###prerequisites
 
 - put your EC2 endpoint in play-books/inventroy.txt
 - put your database endpoint & configuration in play-books/vars.yml
