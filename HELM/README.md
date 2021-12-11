@@ -2,11 +2,8 @@
 
 HELM is used to deploy kubernetes resources 
 
-### prerequisites
 
-- you must have helm in your enviroment 
-
-## start Terraform 
+## install HELM charts
 
 ```
 helm install jumia ./jumia-frontend-charts/
