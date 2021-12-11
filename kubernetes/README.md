@@ -19,11 +19,6 @@ terraform apply
 ```
 aws eks --region region update-kubeconfig --name cluster_name
 
-```
-
-## start Terraform 
-
-```
 terraform output config-map-aws-auth
 
 kubectl apply -f config-map-aws-auth
