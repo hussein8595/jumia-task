@@ -9,7 +9,7 @@ resource "aws_db_instance" "postgres" {
   engine                  = "postgres"
   instance_class          = "db.t4g.micro" 
   identifier              = "postgres"
-  name                    = "jumia_phone_validator"
+  name                    = "validator_backend"
   username                = "master"          
   password                = "master##" 
   db_subnet_group_name    = aws_db_subnet_group.postgres-subnet.name
