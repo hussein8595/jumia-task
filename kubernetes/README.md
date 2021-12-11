@@ -1,6 +1,6 @@
 # Terraform 
 
-Terraform is used to provision EKS cluster in availability zones 
+Terraform is used to provision EKS cluster in three availability zones 
 
 ### prerequisites
 
