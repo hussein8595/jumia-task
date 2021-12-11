@@ -33,7 +33,7 @@ Terraform is used to configure our DataBase , setup docker , build & deploy our 
 - private key ( to access EC2 instance) 
 
 
-## start Terraform 
+## start Ansible 
 
 ```
 ansible-playbook db-play-book.yml -i inventroy.txt --private-key mykey
