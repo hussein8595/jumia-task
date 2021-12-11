@@ -1,0 +1,86 @@
+pipeline {
+    agent any 
+    tools {
+        maven "MAVEN"
+        jdk "JDK"
+    }
+    environment {
+        //once you sign up for Docker hub, use that user_id here
+        registry = "your_docker_user_id/mypythonapp"
+        //- update your credentials ID after creating credentials for connecting to Docker Hub
+        registryCredential = 'fa32f95a-2d3e-4c7b-8f34-11bcc0191d70'
+        dockerImage = ''
+    }
+    
+    stages {
+        stage('Cloning Git') {
+            steps {
+                checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'git2', url: 'git@github.com:Jumia/DevOps-Challenge.git']]]     
+            }
+        }
+        stage('Initialize'){
+            steps{
+                echo "PATH = ${M2_HOME}/bin:${PATH}"
+                echo "M2_HOME = /opt/maven"
+            }
+        }
+		
+		stage ('adjust DB config') {
+            steps {
+			
+			   withCredentials([string(credentialsId: 'dbpasswd', variable: 'dbpasswd')]) {
+    				 sh "sed -i 's/spring.datasource.password=root/spring.datasource.password=${dbpasswd}/' /var/lib/jenkins/workspace/docker-pipline-job/jumia_phone_validator/validator-backend/src/main/resources/application.properties "
+
+                    }
+                 sh "sed -i 's/spring.datasource.username=root/spring.datasource.username=jumia/' /var/lib/jenkins/workspace/docker-pipline-job/jumia_phone_validator/validator-backend/src/main/resources/application.properties "
+				 sh "sed -i 's/localhost:5432/postgres.cl9fidhktfq1.eu-west-2.rds.amazonaws.com:5432/' /var/lib/jenkins/workspace/docker-pipline-job/jumia_phone_validator/validator-backend/src/main/resources/application.properties "
+				 
+            }  
+        }
+		
+		
+        stage ('Build maven') {
+            steps {
+                 sh 'mvn -f /var/lib/jenkins/workspace/docker-pipline-job/jumia_phone_validator/validator-backend/pom.xml clean install'
+
+            }  
+   }
+   
+
+
+		  stage('docker build') {
+             steps {
+                       withCredentials([string(credentialsId: 'dockerhubpasswd', variable: 'dockerhubpasswd')]) {
+                        sh "docker login -u bigdocker6969 -p ${dockerhubpasswd}"
+                    }
+					sh 'cd /var/lib/jenkins/workspace/docker-pipline-job/jumia_phone_validator/validator-backend && docker build -t bigdocker6969/jenkins-way:2.0 .' 
+            }
+        }
+		
+			
+
+			
+		  stage('docker push') {
+             steps {
+                       withCredentials([string(credentialsId: 'dockerhubpasswd', variable: 'dockerhubpasswd')]) {
+                        sh "docker login -u bigdocker6969 -p ${dockerhubpasswd}"
+                    }
+					sh 'docker push bigdocker6969/jenkins-way:2.0'
+            }
+        }
+
+        
+		   
+        stage('ssh & docker run') {
+	 
+         steps {
+          sshagent(['ec2']) {
+             sh 'ssh -o StrictHostKeyChecking=no ubuntu@18.134.182.181 -p 1337 sudo docker run -d -p 8081:8081 --name jenkinsway bigdocker6969/jenkins-way:2.0  '
+           }
+         }
+       }
+	 
+  }
+}
+
+
